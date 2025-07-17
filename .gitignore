@@ -1,0 +1,11 @@
+echo "venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+static/uploads/*
+static/processed/*
+!static/uploads/.gitkeep
+!static/processed/.gitkeep" > .gitignore
