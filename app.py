@@ -8,12 +8,23 @@ import io
 import base64
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
-app.config['PROCESSED_FOLDER'] = 'static/processed'
+
+# Полные абсолютные пути для Render
+UPLOAD_FOLDER = os.path.join(os.getcwd(), 'static', 'uploads')
+PROCESSED_FOLDER = os.path.join(os.getcwd(), 'static', 'processed')
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['PROCESSED_FOLDER'] = PROCESSED_FOLDER
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg'}
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB
+
+# Создаем директории при запуске
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(PROCESSED_FOLDER, exist_ok=True)
 
 def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 def create_color_histogram(img, title):
     if img.mode != 'RGB':
@@ -35,7 +46,7 @@ def create_color_histogram(img, title):
     plt.grid(True)
     
     buf = io.BytesIO()
-    plt.savefig(buf, format='png')
+    plt.savefig(buf, format='png', bbox_inches='tight')
     buf.seek(0)
     plt.close()
     
@@ -72,31 +83,42 @@ def index():
         
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
+            
+            # Сохраняем оригинал
             original_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(original_path)
             
+            # Получаем параметры
             func_type = request.form.get('func_type', 'sin')
             period = float(request.form.get('period', 10))
             
+            # Обрабатываем изображение
             original_img = Image.open(original_path)
             processed_img = apply_periodic_function(original_img, func_type, period)
             
+            # Сохраняем результат
             processed_filename = f"processed_{filename}"
             processed_path = os.path.join(app.config['PROCESSED_FOLDER'], processed_filename)
-            processed_img.save(processed_path)
             
+            # Определяем формат из расширения файла
+            file_ext = os.path.splitext(filename)[1].lower()
+            if file_ext == '.jpg':
+                file_ext = '.jpeg'
+            
+            processed_img.save(processed_path, format=file_ext[1:])  # Убираем точку
+            
+            # Создаем гистограммы
             original_hist = create_color_histogram(original_img, 'Original Image Color Distribution')
             processed_hist = create_color_histogram(processed_img, 'Processed Image Color Distribution')
             
             return render_template('result.html', 
-                               original_image=original_path,
-                               processed_image=processed_path,
+                               original_image=os.path.join('uploads', filename),
+                               processed_image=os.path.join('processed', processed_filename),
                                original_hist=original_hist,
                                processed_hist=processed_hist)
     
     return render_template('index.html')
 
 if __name__ == '__main__':
-    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-    os.makedirs(app.config['PROCESSED_FOLDER'], exist_ok=True)
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 10000))
+    app.run(host='0.0.0.0', port=port)

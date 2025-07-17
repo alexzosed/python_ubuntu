@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ex
 
-# Установка системных зависимостей
+# Установка зависимостей
 apt-get update && apt-get install -y \
     python3-dev \
     libjpeg-dev \
@@ -9,7 +9,10 @@ apt-get update && apt-get install -y \
     libpng-dev \
     libfreetype6-dev
 
-# Чистая установка Python-пакетов
+# Создаем директории
+mkdir -p static/uploads static/processed
+
+# Установка Python-пакетов
 python -m pip install --upgrade pip
 pip install wheel setuptools
-pip install -r requirements.txt -c constraints.txt --no-cache-dir
+pip install -r requirements.txt --no-cache-dir
