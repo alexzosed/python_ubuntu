@@ -17,10 +17,10 @@ jobs:
         pip install -r requirements.txt
     - name: Create required directories
       run: |
-    	mkdir -p static/uploads
-   	mkdir -p static/processed
-    	touch static/uploads/.gitkeep
-    	touch static/processed/.gitkeep
+        mkdir -p static/uploads
+        mkdir -p static/processed
+        touch static/uploads/.gitkeep
+        touch static/processed/.gitkeep
     - name: Run tests
       run: |
         pytest -v test_app.py
