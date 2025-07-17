@@ -1,7 +1,7 @@
 #!/bin/bash
-set -e
+set -ex
 
-# Установка системных зависимостей для Pillow
+# Установка системных зависимостей
 apt-get update && apt-get install -y \
     python3-dev \
     libjpeg-dev \
@@ -9,7 +9,7 @@ apt-get update && apt-get install -y \
     libpng-dev \
     libfreetype6-dev
 
-# Установка Python-пакетов
-pip install --upgrade pip
-pip install wheel
-pip install -r requirements.txt --no-cache-dir
+# Чистая установка Python-пакетов
+python -m pip install --upgrade pip
+pip install wheel==0.43.0 setuptools==68.2.2
+pip install --no-cache-dir -r requirements.txt
