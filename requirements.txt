@@ -1,7 +1,7 @@
 Flask==2.3.2
 Werkzeug==2.3.7
 Pillow==10.4.0
-numpy==2.0.0
-matplotlib==3.7.1
+numpy==1.26.4  # Важно: версия 1.x для совместимости
+matplotlib==3.8.4  # Совместима с numpy 1.26.x
 gunicorn==20.1.0
 pytest==8.4.1

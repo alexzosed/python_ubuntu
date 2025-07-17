@@ -11,5 +11,5 @@ apt-get update && apt-get install -y \
 
 # Чистая установка Python-пакетов
 python -m pip install --upgrade pip
-pip install wheel==0.43.0 setuptools==68.2.2
-pip install --no-cache-dir -r requirements.txt
+pip install wheel setuptools
+pip install -r requirements.txt -c constraints.txt --no-cache-dir
