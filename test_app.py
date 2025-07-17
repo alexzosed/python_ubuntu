@@ -1,5 +1,6 @@
 import pytest
 from app import app
+from werkzeug.test import create_environ  # Добавляем импорт
 
 @pytest.fixture
 def client():
@@ -13,12 +14,21 @@ def test_index_page(client):
     assert response.status_code == 200
     assert b"Image Processor" in response.data
 
-def test_image_upload(client):
+def test_image_upload(client, tmp_path):
     """Тест загрузки изображения"""
-    with open('test_image.jpg', 'rb') as img:
+    # Создаем временное тестовое изображение
+    test_img = tmp_path / "test.jpg"
+    with open(test_img, 'wb') as f:
+        f.write(b'\xff\xd8\xff\xe0\x00\x10JFIF\x00' + b'\x00'*1000)
+    
+    with open(test_img, 'rb') as img:
         response = client.post(
             '/',
-            data={'file': img, 'func_type': 'sin', 'period': '10'},
+            data={
+                'file': (img, 'test.jpg'),
+                'func_type': 'sin',
+                'period': '10'
+            },
             content_type='multipart/form-data'
         )
     assert response.status_code == 200
