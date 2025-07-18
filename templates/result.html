@@ -44,9 +44,10 @@
             <h2>Original Image</h2>
             <div class="image-container">
                 <div class="image-box">
-                    <img src="{{ url_for('static', filename=original_image) }}" 
+                    <!-- Изменено: добавлен fallback при ошибке загрузки -->
+                    <img src="{{ original_image_url }}" 
                          alt="Original Image"
-                         onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\" fill=\"%23f44336\"><text x=\"50%\" y=\"50%\" dominant-baseline=\"middle\" text-anchor=\"middle\" font-size=\"14\">Failed to load original image</text></svg>'">
+                         onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\" fill=\"%23f44336\"><text x=\"50%\" y=\"50%\" dominant-baseline=\"middle\" text-anchor=\"middle\" font-size=\"14\">Original image failed to load</text></svg>'">
                     <p>Original Image</p>
                 </div>
             </div>
@@ -54,9 +55,10 @@
             <h2>Processed Image</h2>
             <div class="image-container">
                 <div class="image-box">
-                    <img src="{{ url_for('static', filename=processed_image) }}" 
+                    <!-- Изменено: добавлен fallback при ошибке загрузки -->
+                    <img src="{{ processed_image_url }}" 
                          alt="Processed Image"
-                         onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\" fill=\"%23f44336\"><text x=\"50%\" y=\"50%\" dominant-baseline=\"middle\" text-anchor=\"middle\" font-size=\"14\">Failed to load processed image</text></svg>'">
+                         onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\" fill=\"%23f44336\"><text x=\"50%\" y=\"50%\" dominant-baseline=\"middle\" text-anchor=\"middle\" font-size=\"14\">Processed image failed to load</text></svg>'">
                     <p>Processed Image</p>
                 </div>
             </div>
@@ -66,11 +68,25 @@
             <h2>Color Distribution</h2>
             <div class="image-container">
                 <div class="histogram-box">
-                    <img src="data:image/png;base64,{{ original_hist }}" alt="Original Histogram">
+                    <!-- Изменено: проверка наличия гистограммы -->
+                    {% if original_hist %}
+                    <img src="data:image/png;base64,{{ original_hist }}" 
+                         alt="Original Histogram"
+                         onerror="this.style.display='none'">
+                    {% else %}
+                    <p>Histogram not available</p>
+                    {% endif %}
                     <p>Original Image Color Distribution</p>
                 </div>
                 <div class="histogram-box">
-                    <img src="data:image/png;base64,{{ processed_hist }}" alt="Processed Histogram">
+                    <!-- Изменено: проверка наличия гистограммы -->
+                    {% if processed_hist %}
+                    <img src="data:image/png;base64,{{ processed_hist }}" 
+                         alt="Processed Histogram"
+                         onerror="this.style.display='none'">
+                    {% else %}
+                    <p>Histogram not available</p>
+                    {% endif %}
                     <p>Processed Image Color Distribution</p>
                 </div>
             </div>
@@ -80,10 +96,14 @@
     <a href="{{ url_for('index') }}" class="back-link">Process Another Image</a>
 
     <script>
-        // Логирование ошибок загрузки изображений в консоль
+        // Улучшенное логирование ошибок
         document.querySelectorAll('img').forEach(img => {
             img.onerror = function() {
-                console.error('Failed to load image:', this.src);
+                console.error('Image load failed:', {
+                    src: this.src,
+                    alt: this.alt,
+                    timestamp: new Date().toISOString()
+                });
             };
         });
     </script>

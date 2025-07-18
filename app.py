@@ -2,7 +2,7 @@ import os
 import io
 import base64
 import traceback
-from flask import Flask, render_template, request, redirect, url_for, url_for
+from flask import Flask, render_template, request, redirect, url_for
 from werkzeug.utils import secure_filename
 from PIL import Image
 import numpy as np
@@ -12,15 +12,15 @@ import matplotlib.pyplot as plt
 
 app = Flask(__name__)
 
-# Конфигурация
+# Конфигурация (ВАЖНО: без 'static/' в путях)
 app.config['MAX_CONTENT_LENGTH'] = 8 * 1024 * 1024  # 8MB
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
-app.config['PROCESSED_FOLDER'] = 'static/processed'
+app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['PROCESSED_FOLDER'] = 'processed'
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg'}
 
-# Создаем директории
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-os.makedirs(app.config['PROCESSED_FOLDER'], exist_ok=True)
+# Создаем директории в static_folder
+os.makedirs(os.path.join(app.static_folder, app.config['UPLOAD_FOLDER']), exist_ok=True)
+os.makedirs(os.path.join(app.static_folder, app.config['PROCESSED_FOLDER']), exist_ok=True)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
@@ -75,7 +75,7 @@ def index():
         if file and allowed_file(file.filename):
             try:
                 filename = secure_filename(file.filename)
-                original_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                original_path = os.path.join(app.static_folder, app.config['UPLOAD_FOLDER'], filename)
                 file.save(original_path)
 
                 with Image.open(original_path) as img:
@@ -91,9 +91,8 @@ def index():
                     
                     processed_img = apply_periodic_function(img, func_type, period)
                     processed_filename = f"processed_{filename}"
-                    processed_path = os.path.join(app.config['PROCESSED_FOLDER'], processed_filename)
+                    processed_path = os.path.join(app.static_folder, app.config['PROCESSED_FOLDER'], processed_filename)
                     
-                    # Проверка перед сохранением
                     if processed_img.mode != 'RGB':
                         processed_img = processed_img.convert('RGB')
                     
@@ -103,7 +102,6 @@ def index():
                     else:
                         processed_img.save(processed_path, format='PNG', optimize=True)
                     
-                    # Проверка что файл сохранился
                     if not os.path.exists(processed_path):
                         raise Exception("Processed image not saved")
                     if os.path.getsize(processed_path) == 0:
@@ -113,13 +111,12 @@ def index():
                     processed_hist = create_color_histogram(processed_img, 'Processed Image')
 
                 return render_template(
-                    'result.html',
-                    original_image=url_for('static', filename=f'uploads/{filename}'),
-                    processed_image=url_for('static', filename=f'processed/{processed_filename}'),
-                    original_hist=original_hist,
-                    processed_hist=processed_hist
-                )
-            
+    			'result.html',
+    			original_image_url=url_for('static', filename=f'uploads/{filename}', _external=True),
+    			processed_image_url=url_for('static', filename=f'processed/processed_{filename}', _external=True),
+    			original_hist=original_hist or '',
+    			processed_hist=processed_hist or ''
+		)            
             except Exception as e:
                 app.logger.error(f"Error: {str(e)}\n{traceback.format_exc()}")
                 return render_template(
