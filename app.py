@@ -93,11 +93,11 @@ def index():
                     if max(img.size) > 2000:
                         img.thumbnail((2000, 2000))
                     
-                    processed_img = apply_periodic_function()
+                    processed_img = apply_periodic_function(
                         img,
                         request.form.get('func_type', 'sin'),
                         float(request.form.get('period', 10))
-                    
+                    )
                     # Сохранение результата
                     processed_filename = f"processed_{filename}"
                     processed_path = os.path.join(app.config['PROCESSED_FOLDER'], processed_filename)
