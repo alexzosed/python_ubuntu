@@ -9,10 +9,13 @@ apt-get update && apt-get install -y \
     libpng-dev \
     libfreetype6-dev
 
-# Создаем директории
+# Создаем директории с правильными правами
 mkdir -p static/uploads static/processed
+chmod -R 755 static/
 
 # Установка Python-пакетов
-python -m pip install --upgrade "pip<24.0"
-python -m pip install "setuptools<81.0.0" wheel
-python -m pip install -r requirements.txt --no-cache-dir
+pip install --upgrade pip
+pip install -r requirements.txt --no-cache-dir
+
+# Создаем тестовые файлы для проверки прав
+touch static/uploads/test.txt static/processed/test.txt
